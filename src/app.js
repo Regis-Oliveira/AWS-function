@@ -7,33 +7,67 @@ const mime = require("mime-types");
 
 // console.log(dotenv.config());
 const { parsed } = dotenv.config();
-if (!parsed.S3_BUCKET_ENDPOINT || !parsed.S3_BUCKET_KEY || !parsed.S3_BUCKET_SECRET || !parsed.S3_BUCKET_NAME) {
+if (!parsed.DO_SPACES_ENDPOINT || !parsed.DO_SPACES_KEY || !parsed.DO_SPACES_SECRET || !parsed.DO_SPACES_NAME) {
     console.log("Error parsing the env variables! Make sure you provided the correct .env file!");
     process.exit(0);
 }
 
-const s3BucketEndpoint = new AWS.Endpoint(process.env.S3_BUCKET_ENDPOINT);
+const spacesEndpoint = new AWS.Endpoint(`${process.env.DO_SPACES_ENDPOINT}/raffles/images`);
+
 const s3 = new AWS.S3({
-    endpoint: s3BucketEndpoint,
-    accessKeyId: process.env.S3_BUCKET_KEY,
-    secretAccessKey: process.env.S3_BUCKET_SECRET
+    endpoint: spacesEndpoint,
+    accessKeyId: process.env.DO_SPACES_KEY,
+    secretAccessKey: process.env.DO_SPACES_SECRET,
 });
 
-const uploadFileToS3 = ({ filePath, ACL = "public-read" }) => {
-    const contentType = mime.contentType(filePath);
-    const ext = mime.extensions[contentType][0];
-    const fileName = uuid() + "_" + Date.now() + "." + ext;
+
+/**
+ * Function to list files of a space
+ */
+
+// const params = {
+//   Bucket: 'cdn-buscarrural',
+// }
+
+// s3.listObjects(params, function(err, data) {
+//   if (err) console.log(err, err.stack);
+//       else {
+//           data['Contents'].forEach(function(obj) {
+//           console.log(obj['Key']);
+//       })};
+//   });
+
+
+/**
+ * Function to upload file
+ */
+
+const uploadFileToDO = ({ filePath, ACL = "public-read" }) => {
+  const name = filePath.split("\\", 6);    
+  const teste1 = name[5].split(".");
+  
+  const contentType = mime.contentType(filePath);
+  const ext = mime.extensions[contentType][0];    
+  const fileName = teste1[0] + "." + ext;
+    
     return new Promise((resolve, reject) => {
         const buffer = fs.readFileSync(filePath);
-        s3.putObject({ Bucket: process.env.S3_BUCKET_NAME, Key: fileName, ACL: ACL, Body: buffer, ContentType: contentType }, (err, data) => {
+        s3.putObject({ 
+          Bucket: process.env.DO_SPACES_NAME, 
+          Key: fileName, 
+          ACL: ACL, 
+          Body: buffer, 
+          ContentType: contentType
+        },
+          (err, data) => {
             if (err) {
                 reject(err);
             } else {
-                data.Url = `https://${process.env.S3_BUCKET_NAME}.${process.env.S3_BUCKET_ENDPOINT}/${fileName}`;
+                data.Url = `https://${process.env.DO_URL_SPACES_NAME}.${process.env.DO_URL_SPACES_ENDPOINT}/raffles/images/${fileName}`;
                 resolve(data);
 
                 // Uncommend this incase you want to get files with ACL = private
-                // s3.getSignedUrl("getObject", { Bucket: process.env.S3_BUCKET_NAME, Key: fileName }, (err, url) => {
+                // s3.getSignedUrl("getObject", { Bucket: process.env.DO_SPACES_NAME, Key: fileName }, (err, url) => {
                 //     if (err) {
                 //         reject(err);
                 //     } else {
@@ -45,10 +79,10 @@ const uploadFileToS3 = ({ filePath, ACL = "public-read" }) => {
     })
 }
 
-const fileName = "sample.png";
+const fileName = "loop-sorteio-celular.png";
 const filePath = path.resolve(__dirname, "..", "files", fileName);
 
-uploadFileToS3({ filePath: filePath })
+uploadFileToDO({ filePath: filePath })
     .then(data => {
         console.log(data);
         // do whatever you want with it (save in database etc.)
