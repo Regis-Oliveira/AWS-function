@@ -2,7 +2,10 @@ const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 const AWS = require("aws-sdk");
-const { v4: uuid } = require("uuid");
+
+// If you want to use an unic ID on the name of your files
+// const { v4: uuid } = require("uuid");
+
 const mime = require("mime-types");
 
 // console.log(dotenv.config());
@@ -63,7 +66,7 @@ const uploadFileToDO = ({ filePath, ACL = "public-read" }) => {
             if (err) {
                 reject(err);
             } else {
-                data.Url = `https://${process.env.DO_URL_SPACES_NAME}.${process.env.DO_URL_SPACES_ENDPOINT}/raffles/images/${fileName}`;
+                data.Url = `https://${process.env.DO_URL_SPACES_NAME}/raffles/images/${fileName}`;
                 resolve(data);
 
                 // Uncommend this incase you want to get files with ACL = private
@@ -79,7 +82,7 @@ const uploadFileToDO = ({ filePath, ACL = "public-read" }) => {
     })
 }
 
-const fileName = "loop-sorteio-celular.png";
+const fileName = "exemplo.png";
 const filePath = path.resolve(__dirname, "..", "files", fileName);
 
 uploadFileToDO({ filePath: filePath })
