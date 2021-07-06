@@ -15,7 +15,7 @@ if (!parsed.DO_SPACES_ENDPOINT || !parsed.DO_SPACES_KEY || !parsed.DO_SPACES_SEC
     process.exit(0);
 }
 
-const spacesEndpoint = new AWS.Endpoint(`${process.env.DO_SPACES_ENDPOINT}/raffles/images`);
+const spacesEndpoint = new AWS.Endpoint(`${process.env.DO_SPACES_ENDPOINT}/teste-banner-regis`);
 
 const s3 = new AWS.S3({
     endpoint: spacesEndpoint,
@@ -46,12 +46,13 @@ const s3 = new AWS.S3({
  */
 
 const uploadFileToDO = ({ filePath, ACL = "public-read" }) => {
-  const name = filePath.split("\\", 6);    
-  const teste1 = name[5].split(".");
+  const name = filePath.split("/", 6);
+  const textName = name[5].split(".");
   
-  const contentType = mime.contentType(filePath);
-  const ext = mime.extensions[contentType][0];    
-  const fileName = teste1[0] + "." + ext;
+  const contentType = textName[1];
+//   const ext = mime.extensions[contentType][0];
+//   console.log("ext::", ext) 
+  const fileName = textName[0] + "." + textName[1];
     
     return new Promise((resolve, reject) => {
         const buffer = fs.readFileSync(filePath);
@@ -66,7 +67,7 @@ const uploadFileToDO = ({ filePath, ACL = "public-read" }) => {
             if (err) {
                 reject(err);
             } else {
-                data.Url = `https://${process.env.DO_URL_SPACES_NAME}/raffles/images/${fileName}`;
+                data.Url = `https://${process.env.DO_URL_SUBDOMAIN}/teste-banner-regis/${fileName}`;
                 resolve(data);
 
                 // Uncommend this incase you want to get files with ACL = private
@@ -82,7 +83,7 @@ const uploadFileToDO = ({ filePath, ACL = "public-read" }) => {
     })
 }
 
-const fileName = "exemplo.png";
+const fileName = "image_banner_teste.png";
 const filePath = path.resolve(__dirname, "..", "files", fileName);
 
 uploadFileToDO({ filePath: filePath })
